@@ -1,0 +1,60 @@
+ADDITIVES_DB = {
+    "E322": {
+        "name": "Soy lecithin",
+        "category": "Emulsifier",
+        "source": "Soy / Egg",
+        "risk_level": "Low",
+        "description": "Helps mix oil and water to improve texture and shelf life.",
+        "notes": "May be an allergen for people sensitive to soy."
+    },
+    "E471": {
+        "name": "Mono- and diglycerides of fatty acids",
+        "category": "Emulsifier",
+        "source": "Plant or animal fats",
+        "risk_level": "Medium",
+        "description": "Used to improve texture and prevent separation.",
+        "notes": "Source may not be disclosed; avoid if vegan."
+    }
+}
+
+ADDITIVE_NAME_MAP = {
+    "monosodium glutamate": "E621",
+    "citric acid": "E330",
+    "guar gum": "E412",
+    "annatto": "E160B",
+    "sodium bicarbonate": "E500",
+}
+
+ADDITIVE_CATEGORIES = {
+    "raising agent": {
+        "category": "Leavening agent",
+        "risk_level": "Low–Medium",
+        "description": "Used to make baked products rise. Common examples include sodium bicarbonate."
+    },
+    "emulsifier": {
+        "category": "Emulsifier",
+        "risk_level": "Low–Medium",
+        "description": "Helps mix oil and water to improve texture and shelf life."
+    },
+    "stabilizing agent": {
+        "category": "Stabilizer",
+        "risk_level": "Low–Medium",
+        "description": "Maintains texture and prevents separation."
+    },
+    "antioxidant": {
+        "category": "Antioxidant",
+        "risk_level": "Low",
+        "description": "Prevents spoilage by slowing oxidation."
+    },
+    "food colour": {
+        "category": "Colorant",
+        "risk_level": "Varies",
+        "description": "Adds or restores color to food products."
+    },
+    "flavouring substance": {
+        "category": "Flavouring",
+        "risk_level": "Varies",
+        "description": "Adds taste or aroma. Exact compounds may not be disclosed."
+    }
+}
+
