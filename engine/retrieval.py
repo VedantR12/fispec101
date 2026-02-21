@@ -3,25 +3,34 @@ from engine.ingredients import parse_ingredients
 from engine.additives_resolver import resolve_additives
 from engine.nutrition import extract_nutrition
 
-# Load CSV once at startup
-df = pd.read_csv(
-    "data/foodfacts.csv",
-    sep="\t",
-    engine="python",
-    on_bad_lines="skip"
-)
+# 🔹 Global dataframe cache
+df = None
 
-# Ensure code column is string
-df["code"] = df["code"].astype(str)
+
+def load_data():
+    global df
+    if df is None:
+        print("Loading CSV data into memory...")
+        df = pd.read_csv(
+            "data/foodfacts.csv",
+            sep="\t",
+            engine="python",
+            on_bad_lines="skip"
+        )
+        df["code"] = df["code"].astype(str)
+        print("CSV loaded successfully.")
 
 
 def find_product(query: str):
     if not query:
         return None
 
+    # 🔹 Ensure CSV is loaded
+    if df is None:
+        load_data()
+
     query = str(query).strip()
     query_lower = query.lower()
-
     is_numeric = query.isdigit()
 
     # 🔹 1️⃣ BARCODE MATCH (PRIORITY)
@@ -30,14 +39,12 @@ def find_product(query: str):
             (df["code"] == query) |
             (df["code"].str.lstrip("0") == query.lstrip("0"))
         ]
-
         if not barcode_matches.empty:
             product = barcode_matches.iloc[0]
             return build_product_result(product)
 
     # 🔹 2️⃣ NAME MATCH
     product_series = df["product_name"].astype(str).str.lower()
-
     alt = query_lower[:-1] if query_lower.endswith("s") else query_lower + "s"
 
     name_matches = df[
@@ -59,7 +66,7 @@ def build_product_result(product):
         "product_name": product.get("product_name"),
         "brands": product.get("brands"),
         "categories": product.get("categories"),
-        "code":product.get("code"),
+        "code": product.get("code"),
         "ingredients": parsed["ingredients"],
         "additives": resolve_additives(parsed["additives"]),
         "nutrition_100g": {
@@ -78,7 +85,7 @@ def build_product_result(product):
         }
     }
 
-    # Clean NaN values
+    # 🔹 Clean NaN values
     for section, values in result.items():
         if isinstance(values, dict):
             for k, v in values.items():
