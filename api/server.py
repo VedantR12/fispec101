@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query, Depends
 from engine.auth.dependencies import get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 from engine.history.history_writer import save_user_history
 from engine.history.history_reader import get_user_history
 from engine.retrieval import find_product
@@ -10,6 +11,14 @@ from engine.scoring.nutrition_mapper import map_nutrition_for_engine
 from engine.scoring.category_guard import apply_category_guard
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/search")
