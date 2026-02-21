@@ -20,6 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"status": "FiSpec backend is running"}
 
 @app.get("/search")
 def search_product(
