@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-
+from engine.scoring.fispec_fusion import fuse_fispec_scores
 from engine.auth.dependencies import get_current_user
 from engine.history.history_writer import save_user_history
 from engine.history.history_reader import get_user_history
@@ -52,7 +52,7 @@ def search_product(
     engine_notes = engine_result.get("engine_notes") or []
 
     # Final score (your logic here)
-    final_score = engine_score
+    final_score = fuse_fispec_scores(engine_score, llm_score)
 
     # Category guard
     guarded_score, guard_notes = apply_category_guard(
