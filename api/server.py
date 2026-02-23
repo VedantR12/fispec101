@@ -1,17 +1,19 @@
 from fastapi import FastAPI, Query, Depends
-from engine.auth.dependencies import get_current_user
 from fastapi.middleware.cors import CORSMiddleware
+
+from engine.auth.dependencies import get_current_user
 from engine.history.history_writer import save_user_history
 from engine.history.history_reader import get_user_history
 from engine.retrieval import find_product
 from engine.llm.runner import run_llm_analysis
 from engine.scoring.fispec_score import calculate_fispec_score
-from engine.scoring.fispec_fusion import fuse_fispec_scores
 from engine.scoring.nutrition_mapper import map_nutrition_for_engine
 from engine.scoring.category_guard import apply_category_guard
 
 app = FastAPI()
 
+
+# CORS (tighten later in production)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,9 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def root():
     return {"status": "FiSpec backend is running"}
+
 
 @app.get("/search")
 def search_product(
@@ -34,11 +38,11 @@ def search_product(
     if product is None:
         return {"error": "Product not found"}
 
-    # 1️⃣ LLM
+    # LLM analysis
     llm_result = run_llm_analysis(product)
     llm_score = llm_result["llm_fispec_score"]
 
-    # 2️⃣ Engine
+    # Engine scoring
     mapped_nutrition = map_nutrition_for_engine(
         product.get("nutrition_100g", {})
     )
@@ -47,10 +51,10 @@ def search_product(
     engine_score = engine_result["engine_fispec_score"]
     engine_notes = engine_result.get("engine_notes") or []
 
-    # 3️⃣ Fusion (FIXED)
-    final_score = fuse_fispec_scores(engine_score)
+    # Final score (your logic here)
+    final_score = engine_score
 
-    # 4️⃣ Category guard
+    # Category guard
     guarded_score, guard_notes = apply_category_guard(
         final_score,
         product
@@ -58,7 +62,7 @@ def search_product(
 
     engine_notes.extend(guard_notes)
 
-    # 5️⃣ Save history
+    # Save history
     save_user_history(
         uid=user["uid"],
         product_name=product.get("product_name"),
@@ -66,22 +70,18 @@ def search_product(
         score=guarded_score
     )
 
-    # 6️⃣ Product details
-    product_details = {
-        "product_name": product.get("product_name"),
-        "brand": product.get("brands"),
-        "barcode": product.get("code"),
-        "ingredients_raw": product.get("ingredients_text"),
-        "categories": product.get("categories"),
-        "quantity": product.get("quantity")
-    }
-
+    # Response
     return {
         "final_fispec_score": guarded_score,
         "engine_fispec_score": engine_score,
         "llm_fispec_score": llm_score,
         "engine_notes": engine_notes,
-        "product_details": product_details,
+        "product_details": {
+            "product_name": product.get("product_name"),
+            "brand": product.get("brands"),
+            "barcode": product.get("code"),
+            "categories": product.get("categories")
+        },
         "analysis": llm_result["analysis"]
     }
 
