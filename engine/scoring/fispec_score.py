@@ -25,21 +25,21 @@ def calculate_fispec_score(nutrition_100g: dict) -> dict:
         notes.append("High energy density (>350 kcal/100g): −2.0")
 
     if fat is None:
-        notes.append("Fat value is not available: no penalty applied")
+        notes.append("Fat value is not available: penalty applied")
         score -= 1.5
     elif fat > 15:
         score -= 2.0
         notes.append("High total fat (>15 g/100g): −2.0")
 
     if sugar is None:
-        notes.append("Sugar value is not available: no penalty applied")
+        notes.append("Sugar value is not available: penalty applied")
         score -= 3
     elif sugar > 12:
         score -= 1.5
         notes.append("High sugar (>12 g/100g): −1.5")
 
     if salt is None:
-        notes.append("Salt value is not available: no penalty applied")
+        notes.append("Salt value is not available: penalty applied")
         score -= 2
     elif salt > 1.5:
         score -= 1.5
