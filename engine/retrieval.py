@@ -41,7 +41,32 @@ def find_product(query: str):
 
 
 def build_product_result(product: dict):
-    parsed = parse_ingredients(product.get("ingredients_text"))
+    ingredients_text = product.get("ingredients_text")
+    parsed = parse_ingredients(ingredients_text)
+
+    # 🔹 Extract additives from additives_tags
+    raw_tags = product.get("additives_tags")
+    detected_additives = []
+
+    if raw_tags:
+        tags_list = raw_tags.split(",")
+
+        for tag in tags_list:
+            # tag example: "en:e330"
+            parts = tag.split(":")
+            if len(parts) == 2:
+                code_with_e = parts[1].upper()  # E330
+
+                # Remove leading E because master stores without it
+                code_numeric = code_with_e.replace("E", "")
+
+                detected_additives.append({
+                    "detected_as": "code",
+                    "raw_text": code_with_e,
+                    "code": code_numeric
+                })
+
+    resolved_additives = resolve_additives(detected_additives)
 
     return {
         "product_name": product.get("product_name"),
@@ -49,7 +74,7 @@ def build_product_result(product: dict):
         "categories": product.get("categories"),
         "code": product.get("code"),
         "ingredients": parsed["ingredients"],
-        "additives": resolve_additives(parsed["additives"]),
+        "additives": resolved_additives,
         "nutrition_100g": {
             "energy_100g": product.get("energy_kcal_100g"),
             "energy-kcal_100g": product.get("energy_kcal_100g"),
