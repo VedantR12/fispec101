@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from engine.scoring.fispec_fusion import fuse_fispec_scores
 from engine.auth.dependencies import get_current_user
 from engine.history.history_writer import save_user_history
 from engine.history.history_reader import get_user_history
@@ -8,7 +7,6 @@ from engine.retrieval import find_product
 from engine.llm.runner import run_llm_analysis
 from engine.scoring.fispec_score import calculate_fispec_score
 from engine.scoring.nutrition_mapper import map_nutrition_for_engine
-from engine.scoring.category_guard import apply_category_guard
 
 app = FastAPI()
 
@@ -52,27 +50,20 @@ def search_product(
     engine_notes = engine_result.get("engine_notes") or []
 
     # Final score (your logic here)
-    final_score = fuse_fispec_scores(engine_score, llm_score)
-
-    # Category guard
-    guarded_score, guard_notes = apply_category_guard(
-        final_score,
-        product
-    )
-
-    engine_notes.extend(guard_notes)
+    final_score = engine_score
+   
 
     # Save history
     save_user_history(
         uid=user["uid"],
         product_name=product.get("product_name"),
         barcode=product.get("code"),
-        score=guarded_score
+        score=final_score
     )
 
     # Response
     return {
-        "final_fispec_score": guarded_score,
+        "final_fispec_score": final_score,
         "engine_fispec_score": engine_score,
         "llm_fispec_score": llm_score,
         "engine_notes": engine_notes,
