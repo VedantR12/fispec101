@@ -7,6 +7,7 @@ from engine.retrieval import find_product
 from engine.llm.runner import run_llm_analysis
 from engine.scoring.fispec_score import calculate_fispec_score
 from engine.scoring.nutrition_mapper import map_nutrition_for_engine
+from engine.db.supabase_client import supabase
 
 app = FastAPI()
 
@@ -15,7 +16,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -23,7 +24,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"status": "FiSpec backend is running"}
+    return {"status": "FiSpec backend is running \n visit: https://fispec.vercel.app"}
 
 
 @app.get("/search")
@@ -45,7 +46,7 @@ def search_product(
         product.get("nutrition_100g", {})
     )
 
-    engine_result = calculate_fispec_score(mapped_nutrition)
+    engine_result = calculate_fispec_score(product, mapped_nutrition)
     engine_score = engine_result["engine_fispec_score"]
     engine_notes = engine_result.get("engine_notes") or []
 
@@ -76,6 +77,69 @@ def search_product(
         "analysis": llm_result["analysis"]
     }
 
+@app.get("/suggest")
+def suggest_products(q: str = Query(...)):
+
+    response = (
+        supabase
+        .table("products")
+        .select("code, product_name, brands, image_small_url")
+        .ilike("product_name", f"%{q}%")
+        .limit(8)
+        .execute()
+    )
+
+    suggestions = []
+
+    if response.data:
+        for row in response.data:
+            suggestions.append({
+                "barcode": row["code"],
+                "product_name": row["product_name"],
+                "brand": row["brands"],
+                "image": row["image_small_url"]
+            })
+
+    return {"suggestions": suggestions}
+
+@app.get("/search-products")
+def search_products(q: str = Query(...)):
+
+    # Detect if query is barcode
+    if q.isdigit():
+
+        response = (
+            supabase
+            .table("products")
+            .select("code, product_name, brands, categories")
+            .eq("code", q)
+            .limit(1)
+            .execute()
+        )
+
+    else:
+
+        response = (
+            supabase
+            .table("products")
+            .select("code, product_name, brands, categories")
+            .ilike("product_name", f"%{q}%")
+            .limit(20)
+            .execute()
+        )
+
+    results = []
+
+    if response.data:
+        for row in response.data:
+            results.append({
+                "barcode": row["code"],
+                "product_name": row["product_name"],
+                "brand": row["brands"],
+                "categories": row["categories"]
+            })
+
+    return {"results": results}
 
 @app.get("/history")
 def read_history(user: dict = Depends(get_current_user)):

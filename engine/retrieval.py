@@ -4,6 +4,7 @@ from engine.additives_resolver import resolve_additives
 
 
 def find_product(query: str):
+
     if not query:
         return None
 
@@ -11,12 +12,38 @@ def find_product(query: str):
     is_numeric = query.isdigit()
 
     # 1️⃣ Barcode search (priority)
+
     if is_numeric:
+
+        try:
+
+            response = (
+                supabase
+                .table("products")
+                .select("*")
+                .eq("code", query)
+                .limit(1)
+                .execute()
+            )
+
+            if response.data:
+                return build_product_result(response.data[0])
+
+        except Exception as e:
+
+            print("Supabase connection error:", e)
+            return None
+
+
+    # 2️⃣ Name search
+
+    try:
+
         response = (
             supabase
             .table("products")
             .select("*")
-            .eq("code", query)
+            .ilike("product_name", f"%{query}%")
             .limit(1)
             .execute()
         )
@@ -24,18 +51,11 @@ def find_product(query: str):
         if response.data:
             return build_product_result(response.data[0])
 
-    # 2️⃣ Name search
-    response = (
-        supabase
-        .table("products")
-        .select("*")
-        .ilike("product_name", f"%{query}%")
-        .limit(1)
-        .execute()
-    )
+    except Exception as e:
 
-    if response.data:
-        return build_product_result(response.data[0])
+        print("Supabase connection error:", e)
+        return None
+
 
     return None
 
@@ -45,7 +65,7 @@ def build_product_result(product: dict):
     parsed = parse_ingredients(ingredients_text)
 
     # 🔹 Extract additives from additives_tags
-    raw_tags = product.get("additives_tags")
+    raw_tags = product.get("additives_tags") or ""
     detected_additives = []
 
     if raw_tags:
