@@ -14,12 +14,19 @@ def get_user_history(uid: str):
     )
 
     results = []
+    seen_barcodes = set()
 
     if response.data:
 
         for row in response.data:
 
             barcode = row.get("barcode")
+
+            # skip duplicates (keep latest scan)
+            if barcode in seen_barcodes:
+                continue
+
+            seen_barcodes.add(barcode)
 
             product_response = (
                 supabase
