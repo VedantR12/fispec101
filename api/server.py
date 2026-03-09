@@ -72,7 +72,9 @@ def search_product(
             "product_name": product.get("product_name"),
             "brand": product.get("brands"),
             "barcode": product.get("code"),
-            "categories": product.get("categories")
+            "categories": product.get("categories"),
+            "image_url": product.get("image_url"),
+            "image_small_url": product.get("image_small_url")
         },
         "analysis": llm_result["analysis"]
     }
