@@ -76,12 +76,15 @@ def search_product(
    
 
     # Save history
-    save_user_history(
-        uid=user["uid"],
-        product_name=product.get("product_name"),
-        barcode=product.get("code"),
-        score=final_score
-    )
+    try:
+        save_user_history(
+            uid=user["uid"],
+            product_name=product.get("product_name"),
+            barcode=product.get("code"),
+            score=final_score
+        )
+    except Exception as e:
+        print("History write failed:", e)
 
     # Response
     return {
@@ -134,7 +137,7 @@ def search_products(q: str = Query(...)):
         response = (
             supabase
             .table("products")
-            .select("code, product_name, brands, categories")
+            .select("code, product_name, brands, categories, image_small_url")
             .eq("code", q)
             .limit(1)
             .execute()
@@ -145,7 +148,7 @@ def search_products(q: str = Query(...)):
         response = (
             supabase
             .table("products")
-            .select("code, product_name, brands, categories")
+            .select("code, product_name, brands, categories, image_small_url")
             .ilike("product_name", f"%{q}%")
             .limit(20)
             .execute()
@@ -159,7 +162,8 @@ def search_products(q: str = Query(...)):
                 "barcode": row["code"],
                 "product_name": row["product_name"],
                 "brand": row["brands"],
-                "categories": row["categories"]
+                "categories": row["categories"],
+                "image": row.get("image_small_url")
             })
 
     return {"results": results}

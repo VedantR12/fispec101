@@ -4,14 +4,16 @@ from engine.db.supabase_client import supabase
 
 def save_user_history(uid: str, product_name: str, barcode: str | None, score: float):
 
-    # 1️⃣ Insert new entry first
-    insert_response = supabase.table("user_history").insert({
-        "user_uid": uid,
-        "product_name": product_name,
-        "barcode": barcode,
-        "final_fispec_score": score,
-        "searched_at": datetime.utcnow().isoformat()
-    }).execute()
+    try:
+        insert_response = supabase.table("user_history").insert({
+            "user_uid": uid,
+            "product_name": product_name,
+            "barcode": barcode,
+            "final_fispec_score": score,
+            "searched_at": datetime.utcnow().isoformat()
+        }).execute()
+    except Exception as e:
+        print("Supabase history error:", e)
 
     # 2️⃣ Fetch all user history ordered latest first
     response = (
