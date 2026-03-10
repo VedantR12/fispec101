@@ -8,6 +8,7 @@ from engine.llm.runner import run_llm_analysis
 from engine.scoring.fispec_score import calculate_fispec_score
 from engine.scoring.nutrition_mapper import map_nutrition_for_engine
 from engine.db.supabase_client import supabase
+from engine.db.analysis_store import get_analysis, save_analysis
 
 app = FastAPI()
 
@@ -37,8 +38,28 @@ def search_product(
     if product is None:
         return {"error": "Product not found"}
 
-    # LLM analysis
-    llm_result = run_llm_analysis(product)
+    
+    barcode = product.get("code")
+
+    cached = get_analysis(barcode)
+
+    if cached:
+
+        llm_result = {
+            "analysis": cached["analysis_json"],
+            "llm_fispec_score": cached["llm_fispec_score"]
+        }
+
+    else:
+
+        llm_result = run_llm_analysis(product)
+
+        save_analysis(
+            barcode,
+            llm_result["analysis"],
+            llm_result["llm_fispec_score"]
+        )
+        
     llm_score = llm_result["llm_fispec_score"]
 
     # Engine scoring

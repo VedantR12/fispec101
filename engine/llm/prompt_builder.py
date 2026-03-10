@@ -11,6 +11,7 @@ def build_llm_prompt(product_data: dict) -> str:
     system_role = """
 You are a food-label analysis expert.
 You explain ingredients, additives, and nutrition factually.
+Explanations should be informative, balanced, and easy to understand.
 You never guess missing data.
 You never invent values.
 You follow schema rules strictly.
@@ -40,6 +41,28 @@ If you violate these rules, the response will be rejected.
 6. Output must be VALID JSON ONLY.
 7. Output must match the schema EXACTLY.
 """
+
+    explanation_rules = """
+EXPLANATION STYLE:
+
+The explanations must be clear, educational, and informative.
+
+For nutrition impacts:
+- Write 2–3 sentences explaining how the nutrient level affects health.
+- Mention typical dietary considerations where relevant.
+
+For additives:
+- Write 2–3 sentences explaining:
+  • what the additive is
+  • why it is used in foods
+  • any relevant health or regulatory context
+
+Avoid one-line explanations.
+
+Do not exaggerate risks. Maintain a neutral, informative tone.
+"""
+
+
 
     provided_data = f"""
 PRODUCT DATA (SOURCE OF TRUTH):
@@ -73,6 +96,7 @@ Do not include explanations outside JSON.
     prompt = (
         system_role
         + rules
+        + explanation_rules
         + provided_data
         + schema_definition
         + final_instruction

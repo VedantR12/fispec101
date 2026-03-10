@@ -1,48 +1,7 @@
-def is_beverage(product: dict) -> bool:
-    """
-    Detect if a product belongs to beverage category
-    """
-
-    categories = (product.get("categories") or "").lower()
-
-    beverage_keywords = [
-        "beverage",
-        "drink",
-        "soda",
-        "juice",
-        "energy drink",
-        "soft drink"
-    ]
-
-    return any(keyword in categories for keyword in beverage_keywords)
-
-
-def beverage_sugar_penalty(sugar):
-    """
-    Stronger sugar penalty for beverages
-    """
-
-    if sugar is None:
-        return 0
-
-    if sugar >= 10:
-        return 4.0
-    elif sugar >= 8:
-        return 3.0
-    elif sugar >= 5:
-        return 2.0
-    elif sugar >= 2:
-        return 1.0
-
-    return 0
-
-
 def calculate_fispec_score(product: dict, nutrition_100g: dict) -> dict:
 
-    score = 10.0
     notes = []
-
-    notes.append("Base score initialized at 10.0")
+    score = 10.0
 
     energy = nutrition_100g.get("energy_kcal")
     fat = nutrition_100g.get("fat")
@@ -51,93 +10,130 @@ def calculate_fispec_score(product: dict, nutrition_100g: dict) -> dict:
     protein = nutrition_100g.get("protein")
     fiber = nutrition_100g.get("fiber")
 
-    # ENERGY
-    if energy is None:
-        notes.append("Energy value not available")
-    elif energy > 350:
-        score -= 2.0
-        notes.append("High energy density (>350 kcal/100g): −2.0")
+    values = {
+        "energy": energy,
+        "fat": fat,
+        "sugar": sugar,
+        "salt": salt,
+        "protein": protein,
+        "fiber": fiber
+    }
 
-    # FAT
-    if fat is None:
-        score -= 1.5
-        notes.append("Fat value missing: −1.5")
-    elif fat > 30:
-        score -= 5
-        notes.append("Very high fat (>30 g/100g): −5.0")
-    elif fat > 20:
-        score -= 3
-        notes.append("High fat (>20 g/100g): −3.0")
-    elif fat > 15:
-        score -= 2
-        notes.append("Moderately high fat (>15 g/100g): −2.0")
+    # -------------------------
+    # DATA AVAILABILITY CHECK
+    # -------------------------
 
-    # SUGAR
-    if sugar is None:
-        score -= 3
-        notes.append("Sugar value missing: −3.0")
-    elif sugar > 20:
-        score -= 5
-        notes.append("Extremely high sugar (>20 g/100g): −5.0")
-    elif sugar > 15:
-        score -= 3
-        notes.append("Very high sugar (>15 g/100g): −3.0")
-    elif sugar > 10:
-        score -= 2.5
-        notes.append("High sugar (>10 g/100g): −2.5")
+    missing = [k for k, v in values.items() if v is None]
 
-    # SALT
-    if salt is None:
-        score -= 2
-        notes.append("Salt value missing: −2.0")
-    elif salt > 3:
-        score -= 3
-        notes.append("Extremely high salt (>3 g/100g): −3.0")
-    elif salt > 1.5:
-        score -= 1.5
-        notes.append("High salt (>1.5 g/100g): −1.5")
+    if len(missing) > 2:
 
-    # POSITIVE NUTRITION BONUS
+        notes.append(
+            f"Insufficient nutritional data. Missing values: {', '.join(missing)}"
+        )
 
-    # Fiber bonus
+        notes.append(
+            "More than two essential nutritional values are unavailable."
+        )
+
+        notes.append(
+            "FiSpec score cannot be calculated reliably."
+        )
+
+        return {
+            "engine_fispec_score": "NA",
+            "engine_notes": notes
+        }
+
+    if len(missing) > 0:
+
+        notes.append(
+            f"Score calculated using available data. Missing values: {', '.join(missing)}"
+        )
+
+    notes.append("Base score initialized at 10.0")
+
+    risk = 0
+    benefit = 0
+
+    # -------------------------
+    # SUGAR RISK
+    # -------------------------
+
+    if sugar is not None:
+        sugar_risk = sugar / 25
+        risk += sugar_risk
+        notes.append(f"Sugar influence: +{round(sugar_risk,2)} risk units")
+
+    # -------------------------
+    # FAT RISK
+    # -------------------------
+
+    if fat is not None:
+        fat_risk = fat / 30
+        risk += fat_risk
+        notes.append(f"Fat influence: +{round(fat_risk,2)} risk units")
+
+    # -------------------------
+    # SALT RISK
+    # -------------------------
+
+    if salt is not None:
+        salt_risk = salt / 2
+        risk += salt_risk
+        notes.append(f"Salt influence: +{round(salt_risk,2)} risk units")
+
+    # -------------------------
+    # ENERGY RISK
+    # -------------------------
+
+    if energy is not None:
+        energy_risk = energy / 500
+        risk += energy_risk
+        notes.append(f"Energy density influence: +{round(energy_risk,2)} risk units")
+
+    # -------------------------
+    # FIBER BENEFIT
+    # -------------------------
+
     if fiber is not None:
-        if fiber >= 8:
-            score += 2
-            notes.append("High fiber bonus (≥8 g/100g): +2.0")
-        elif fiber >= 5:
-            score += 1
-            notes.append("Moderate fiber bonus (≥5 g/100g): +1.0")
 
-    # Protein bonus
+        if fiber == 0:
+            fiber_bonus = -1 / 8
+            notes.append("No fiber present: small penalty applied")
+        else:
+            fiber_bonus = fiber / 8
+
+        benefit += fiber_bonus
+        notes.append(f"Fiber contribution: {round(fiber_bonus,2)} benefit units")
+
+    # -------------------------
+    # PROTEIN BENEFIT
+    # -------------------------
+
     if protein is not None:
-        if protein >= 15:
-            score += 2
-            notes.append("High protein bonus (≥15 g/100g): +2.0")
-        elif protein >= 8:
-            score += 1
-            notes.append("Moderate protein bonus (≥8 g/100g): +1.0")
 
-    # BEVERAGE SUGAR RULE
-    if is_beverage(product):
+        if protein == 0:
+            protein_bonus = -1 / 15
+            notes.append("No protein present: small penalty applied")
+        else:
+            protein_bonus = protein / 15
 
-        penalty = beverage_sugar_penalty(sugar)
+        benefit += protein_bonus
+        notes.append(f"Protein contribution: {round(protein_bonus,2)} benefit units")
 
-        if penalty > 0:
-            score -= penalty
-            notes.append(
-                f"Beverage sugar penalty applied ({sugar} g/100g): −{penalty}"
-            )
+    # -------------------------
+    # FINAL SCORE
+    # -------------------------
 
-        if sugar is not None and sugar >= 10:
-            score = min(score, 4)
-            notes.append("Sugary beverage cap applied: score limited to 4")
+    score = 10 - (risk * 2) + benefit
 
-    # FINAL CLAMP
     score = round(score, 1)
 
     score = min(score, 10.0)
-    score = max(score, 0.0)
+    score = max(score, 1.0)
 
+    notes.append(f"Total risk influence: {round(risk,2)}")
+    notes.append(f"Total benefit influence: {round(benefit,2)}")
     notes.append(f"Final engine FiSPEC score: {score}")
 
     return {

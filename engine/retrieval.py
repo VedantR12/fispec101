@@ -89,6 +89,8 @@ def build_product_result(product: dict):
     resolved_additives = resolve_additives(detected_additives)
 
     return {
+        "image_url": product.get("image_url"),
+        "image_small_url": product.get("image_small_url"),
         "product_name": product.get("product_name"),
         "brands": product.get("brands"),
         "categories": product.get("categories"),
