@@ -172,3 +172,7 @@ def search_products(q: str = Query(...)):
 def read_history(user: dict = Depends(get_current_user)):
     history = get_user_history(user["uid"])
     return {"history": history}
+
+@app.get("/health")
+def health():
+    return {"status": "alive"}
