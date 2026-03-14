@@ -9,11 +9,16 @@ from engine.scoring.fispec_score import calculate_fispec_score
 from engine.scoring.nutrition_mapper import map_nutrition_for_engine
 from engine.db.supabase_client import supabase
 from engine.db.analysis_store import get_analysis, save_analysis
+from fastapi.responses import JSONResponse
+
 
 app = FastAPI()
 
+#health
+@app.api_route("/health", methods=["GET", "HEAD"])
+def health():
+    return JSONResponse({"status": "ok"})
 
-# CORS (tighten later in production)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,12 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+#home
 @app.get("/")
 def root():
     return {"status": "FiSpec backend is running \n visit: https://fispec.vercel.app"}
 
-
+#search
 @app.get("/search")
 def search_product(
     q: str = Query(...),
@@ -59,10 +64,10 @@ def search_product(
             llm_result["analysis"],
             llm_result["llm_fispec_score"]
         )
-        
+    
+    #scoring        
     llm_score = llm_result["llm_fispec_score"]
 
-    # Engine scoring
     mapped_nutrition = map_nutrition_for_engine(
         product.get("nutrition_100g", {})
     )
@@ -71,11 +76,11 @@ def search_product(
     engine_score = engine_result["engine_fispec_score"]
     engine_notes = engine_result.get("engine_notes") or []
 
-    # Final score (your logic here)
+  
     final_score = engine_score
    
 
-    # Save history
+    #save_history
     try:
         save_user_history(
             uid=user["uid"],
@@ -86,7 +91,7 @@ def search_product(
     except Exception as e:
         print("History write failed:", e)
 
-    # Response
+    #response
     return {
         "final_fispec_score": final_score,
         "engine_fispec_score": engine_score,
@@ -103,6 +108,7 @@ def search_product(
         "analysis": llm_result["analysis"]
     }
 
+#suggestions
 @app.get("/suggest")
 def suggest_products(q: str = Query(...)):
 
@@ -128,6 +134,7 @@ def suggest_products(q: str = Query(...)):
 
     return {"suggestions": suggestions}
 
+#search results page
 @app.get("/search-products")
 def search_products(q: str = Query(...)):
 
@@ -168,11 +175,8 @@ def search_products(q: str = Query(...)):
 
     return {"results": results}
 
+#get_hisotry
 @app.get("/history")
 def read_history(user: dict = Depends(get_current_user)):
     history = get_user_history(user["uid"])
     return {"history": history}
-
-@app.get("/health")
-def health():
-    return {"status": "alive"}
