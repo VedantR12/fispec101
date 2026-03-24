@@ -64,8 +64,7 @@ def search_product(
             llm_result["analysis"],
             llm_result["llm_fispec_score"]
         )
-    
-    #scoring        
+         
     llm_score = llm_result["llm_fispec_score"]
 
     mapped_nutrition = map_nutrition_for_engine(

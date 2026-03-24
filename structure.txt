@@ -1,8 +1,9 @@
 Folder PATH listing for volume ACER
 Volume serial number is 9467-634A
 C:.
+|   .env
 |   .gitignore
-|   6.5.0
+|   Get-ChildItem
 |   requirements.txt
 |   structure.txt
 |   
@@ -15,58 +16,60 @@ C:.
 +---data
 |       additives_master.csv
 |       data.csv
-|       data.txt
-|       foodfacts.csv
 |       
 +---engine
-|   |   additives_db.py.txt
-|   |   additives_resolver.py
-|   |   ingredients.py
-|   |   nutrition.py
-|   |   retrieval.py
-|   |   __init__.py
-|   |   
-|   +---auth
-|   |   |   auth_guard.py
-|   |   |   dependencies.py
-|   |   |   firebase.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---__pycache__
-|   |           dependencies.cpython-311.pyc
-|   |           firebase.cpython-311.pyc
-|   |           __init__.cpython-311.pyc
-|   |           
-|   +---cache
-|   |   |   llm_cache.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---llm
-|   |           .gitignore
-|   |           __init__.py
-|   |           
-|   +---db
-|   |       supabase_client.py
-|   |       __init__.py
-|   |       
-|   +---history
-|   |       history_reader.py
-|   |       history_writer.py
-|   |       
-|   +---llm
-|   |       gemini_client.py
-|   |       models.py
-|   |       prompt_builder.py
-|   |       runner.py
-|   |       schema.py
-|   |       __init__.py
-|   |       
-|   +---scoring
-|   |       category_guard.py
-|   |       fispec_fusion.py
-|   |       fispec_score.py
-|   |       nutrition_mapper.py
-|   |       
-|   \---__pycache__
-|           __init__.cpython-311.pyc
-|
+    |   additives_db.py.txt
+    |   additives_resolver.py
+    |   ingredients.py
+    |   nutrition.py
+    |   retrieval.py
+    |   __init__.py
+    |   
+    +---auth
+    |   |   dependencies.py
+    |   |   firebase.py
+    |   |   __init__.py
+    |   |   
+    |   \---__pycache__
+    |           dependencies.cpython-311.pyc
+    |           firebase.cpython-311.pyc
+    |           __init__.cpython-311.pyc
+    |           
+    +---db
+    |   |   analysis_store.py
+    |   |   supabase_client.py
+    |   |   __init__.py
+    |   |   
+    |   \---__pycache__
+    |           analysis_store.cpython-311.pyc
+    |           supabase_client.cpython-311.pyc
+    |           __init__.cpython-311.pyc
+    |           
+    +---history
+    |   |   history_reader.py
+    |   |   history_writer.py
+    |   |   
+    |   \---__pycache__
+    |           history_reader.cpython-311.pyc
+    |           history_writer.cpython-311.pyc
+    |           
+    +---llm
+    |   |   groq_client.py
+    |   |   models.py
+    |   |   prompt_builder.py
+    |   |   runner.py
+    |   |   schema.py
+    |   |   __init__.py
+    |   |   
+    |   \---__pycache__
+    |           gemini_client.cpython-311.pyc
+    |           groq_client.cpython-311.pyc
+    |           models.cpython-311.pyc
+    |           prompt_builder.cpython-311.pyc
+    |           runner.cpython-311.pyc
+    |           schema.cpython-311.pyc
+    |           __init__.cpython-311.pyc
+    |           
+    +---scoring
+        |   fispec_score.py
+        |   nutrition_mapper.py

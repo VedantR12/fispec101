@@ -48,18 +48,24 @@ EXPLANATION STYLE:
 The explanations must be clear, educational, and informative.
 
 For nutrition impacts:
-- Write 2–3 sentences explaining how the nutrient level affects health.
+- Write 3-4 sentences explaining how the nutrient level affects health.
+- Clearly tell if the element is in low/moderate/high quantity as per the general norms by WHO(World health organization) or any authorized organization.
 - Mention typical dietary considerations where relevant.
+- analyze all the nutritional elements and give a context if the product with a certain quantity of a particuualr nutritional element is good or not.
+- Tell the user clearly if the particular nutritional element is low or moderate or high quantity
+- If the quantity is low then tell them the health impacts of that particular nutritional elements if the quantity is low and same for moderate and higher values
 
 For additives:
 - Write 2–3 sentences explaining:
   • what the additive is
   • why it is used in foods
   • any relevant health or regulatory context
+  * if the given additives is hazardous or not for the consumer's health
+  * if the given additive is suitable from the indian consumer's perspective
 
 Avoid one-line explanations.
 
-Do not exaggerate risks. Maintain a neutral, informative tone.
+Do not exaggerate risks. maintain a balanced information with risks/benefits or if the element is neutral.
 """
 
 
