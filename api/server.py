@@ -17,6 +17,11 @@ app = FastAPI()
 #health
 @app.api_route("/health", methods=["GET", "HEAD"])
 def health():
+    try:
+        supabase.table("products").select("id").limit(1).execute()
+    except Exception as e:
+        print("Supabase ping failed:", e)
+
     return JSONResponse({"status": "ok"})
 
 app.add_middleware(
